@@ -48,8 +48,8 @@ impl Encoder {
     pub fn new(sample_rate: u32, fps: u32) -> Result<Encoder, Error> {
         let pointer = unsafe {
             ffi::ltc_encoder_create(
-                sample_rate as f64,
-                fps as f64,
+                f64::from(sample_rate),
+                f64::from(fps),
                 // Position of binary group flags is only different for 25 fps
                 if fps == 25 {
                     ffi::LTC_TV_STANDARD_LTC_TV_625_50
@@ -106,7 +106,7 @@ impl Encoder {
     /// ```
     pub fn set_user_bits(&mut self, user_bits: u32) {
         unsafe {
-            ffi::ltc_encoder_set_user_bits(self.pointer, user_bits as u64);
+            ffi::ltc_encoder_set_user_bits(self.pointer, u64::from(user_bits));
         }
     }
 
