@@ -1,0 +1,8 @@
+[package]
+name = "ltc"
+version = "0.1.0"
+authors = ["Johannes Maibaum <jmaibaum@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ltc-sys = {path = "../ltc-sys"}
