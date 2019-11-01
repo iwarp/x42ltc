@@ -40,6 +40,50 @@ pub struct Encoder {
 }
 
 impl Encoder {
+    /// Move the encoder to the previous timecode frame. This is useful for encoding reverse LTC.
+    pub fn decrease_timecode(&mut self) {
+        unsafe {
+            ffi::ltc_encoder_dec_timecode(self.pointer);
+        }
+    }
+
+    /// Resets the write-pointer of the encoded buffer
+    pub fn flush_buffer(&mut self) {
+        unsafe {
+            ffi::ltc_encoder_buffer_flush(self.pointer);
+        }
+    }
+
+    fn get_frame(&self) -> Frame {
+        let mut frame = ffi::LTCFrame {
+            _bitfield_1: ffi::LTCFrame::new_bitfield_1(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            ),
+            ..Default::default()
+        };
+        unsafe {
+            ffi::ltc_encoder_get_frame(self.pointer, &mut frame);
+        }
+        Frame { frame }
+    }
+
+    /// # Example
+    ///
+    /// ```
+    /// let mut encoder = ltc::Encoder::new(48000, 25).unwrap();
+    /// encoder.set_user_bits(12345);
+    /// assert_eq!(encoder.get_user_bits(), 12345);
+    /// ```
+    pub fn get_user_bits(&self) -> u32 {
+        let mut frame = self.get_frame();
+        unsafe {
+            // We can unwrap here, since user bits is actually u32 in ltc_sys
+            ffi::ltc_frame_get_user_bits(&mut frame.frame)
+                .try_into()
+                .unwrap()
+        }
+    }
+
     /// # Example
     ///
     /// ```
@@ -67,36 +111,6 @@ impl Encoder {
         }
     }
 
-    /// Resets the write-pointer of the encoded buffer
-    pub fn flush_buffer(&mut self) {
-        unsafe {
-            ffi::ltc_encoder_buffer_flush(self.pointer);
-        }
-    }
-
-    pub fn decrease_timecode(&mut self) {
-        unsafe {
-            ffi::ltc_encoder_dec_timecode(self.pointer);
-        }
-    }
-
-    /// # Example
-    ///
-    /// ```
-    /// let mut encoder = ltc::Encoder::new(48000, 25).unwrap();
-    /// encoder.set_user_bits(12345);
-    /// assert_eq!(encoder.get_user_bits(), 12345);
-    /// ```
-    pub fn get_user_bits(&self) -> u32 {
-        unsafe {
-            let mut frame = self.get_frame();
-            // We can unwrap here, since user bits is actually u32 in ltc_sys
-            ffi::ltc_frame_get_user_bits(&mut frame.frame)
-                .try_into()
-                .unwrap()
-        }
-    }
-
     /// # Example
     ///
     /// ```
@@ -107,19 +121,6 @@ impl Encoder {
     pub fn set_user_bits(&mut self, user_bits: u32) {
         unsafe {
             ffi::ltc_encoder_set_user_bits(self.pointer, u64::from(user_bits));
-        }
-    }
-
-    fn get_frame(&self) -> Frame {
-        unsafe {
-            let mut frame = ffi::LTCFrame {
-                _bitfield_1: ffi::LTCFrame::new_bitfield_1(
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                ),
-                ..Default::default()
-            };
-            ffi::ltc_encoder_get_frame(self.pointer, &mut frame);
-            Frame { frame }
         }
     }
 }
