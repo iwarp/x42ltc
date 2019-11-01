@@ -11,6 +11,13 @@ pub struct Decoder {
 }
 
 impl Decoder {
+    /// Create a new LTC decoder.
+    ///
+    /// - `audio_frames_per_video_frame` is only used for initial settings, the speed is tracked
+    ///   dynamically. Settings this into the right ballpark is needed to properly decode the first
+    ///   LTC frame.
+    /// - `queue_size` sets the length of the internal queue to store decoded frames.
+    ///
     /// # Example
     ///
     /// ```
@@ -47,7 +54,7 @@ impl Encoder {
         }
     }
 
-    /// Resets the write-pointer of the encoded buffer
+    /// Resets the write-pointer of the encoded buffer.
     pub fn flush_buffer(&mut self) {
         unsafe {
             ffi::ltc_encoder_buffer_flush(self.pointer);
@@ -67,6 +74,9 @@ impl Encoder {
         Frame { frame }
     }
 
+    /// Get the 32 bit unsigned integer from the user data bits of the current frame. The data
+    /// should have been written LSB first into the frame.
+    ///
     /// # Example
     ///
     /// ```
@@ -84,6 +94,11 @@ impl Encoder {
         }
     }
 
+    /// Allocate and initialize LTC audio encoder.
+    ///
+    /// Calls [`ltc_sys::ltc_encoder_reinit`](../ltc_sys/fn.ltc_encoder_reinit.html) inside, see
+    /// notes there or see notes for [`reinit`](#method.reinit).
+    ///
     /// # Example
     ///
     /// ```
@@ -111,6 +126,9 @@ impl Encoder {
         }
     }
 
+    /// Set the user bits of the current frame to the given data. The data is written LSB first into
+    /// the eight user bit fields.
+    ///
     /// # Example
     ///
     /// ```
