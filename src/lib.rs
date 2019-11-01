@@ -5,6 +5,7 @@ use std::convert::TryInto;
 pub enum Error {
     AllocationFailed,
     ReinitializationFailed,
+    SuppliedBufferTooSmall,
     ValueOutOfRange,
 }
 
@@ -57,7 +58,7 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let encoder = ltc::Encoder::new(48000, 25.0).unwrap();
+    /// let encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
     /// ```
     pub fn new(sample_rate: u32, fps: f64) -> Result<Encoder, Error> {
         let pointer = unsafe {
@@ -70,7 +71,7 @@ impl Encoder {
                 } else {
                     ffi::LTC_TV_STANDARD_LTC_TV_525_60
                 },
-                ffi::LTC_BG_FLAGS_LTC_USE_DATE as i32,
+                ffi::LTC_BG_FLAGS_LTC_BGF_DONT_TOUCH as i32,
             )
         };
 
@@ -88,11 +89,74 @@ impl Encoder {
         }
     }
 
+    /// Encode a full LTC frame at fixed speed.  This is equivalent to calling
+    /// [`.encode_byte()`](#method.encode_byte) 10 times for bytes 0..=9 with speed 1.0.
+    ///
+    /// # Note
+    ///
+    /// The internal buffer must be empty before calling this function.  Otherwise it may overflow.
+    /// This is usually the case if it is read with [`.get_buffer()`](#method.get_buffer) after
+    /// calling this function.
+    ///
+    /// The default internal buffer size is exactly one full LTC frame at speed 1.0.
+    pub fn encode_frame(&mut self) {
+        unsafe {
+            ffi::ltc_encoder_encode_frame(self.pointer);
+        }
+    }
+
     /// Resets the write-pointer of the encoded buffer.
     pub fn flush_buffer(&mut self) {
         unsafe {
             ffi::ltc_encoder_buffer_flush(self.pointer);
         }
+    }
+
+    /// Copy the accumulated encoded audio to the given sample buffer and flush the internal buffer.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let sample_rate = 48_000;
+    /// let frames_per_second = 25;
+    /// let mut audio_buffer = Vec::with_capacity((sample_rate / frames_per_second as u32) as usize);
+    ///
+    /// let mut encoder = ltc::Encoder::new(sample_rate, frames_per_second as f64).unwrap();
+    /// encoder.encode_frame();
+    /// assert_eq!(
+    ///     encoder.copy_audio_to_buffer(&mut audio_buffer),
+    ///     (sample_rate / frames_per_second as u32) as usize,
+    /// );
+    /// ```
+    pub fn copy_audio_to_buffer(&mut self, buffer: &mut [u8]) -> usize {
+        /*// Check if supplied buffer is large enough
+        let mut accumulated_len = 0;
+        let _ = unsafe { ffi::ltc_encoder_get_bufptr(self.pointer, &mut accumulated_len, 0) };
+        println!("acc: {}; len: {}", accumulated_len, buffer.len());
+        if accumulated_len as usize > buffer.len() {
+            return Err(Error::SuppliedBufferTooSmall);
+        }*/
+
+        // Copy data
+        let copied_len = unsafe { ffi::ltc_encoder_get_buffer(self.pointer, buffer.as_mut_ptr()) };
+        copied_len as usize
+    }
+
+    /// Returns a slice to the internal buffer of accumulated audio samples, and flushes buffer
+    /// afterwards.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// encoder.encode_frame();
+    /// let buffer = encoder.get_buffer();
+    /// assert_eq!(buffer.len(), 48_000 / 25);
+    /// ```
+    pub fn get_buffer<'a>(&'a self) -> &'a [u8] {
+        let mut buf_len = 0;
+        let buf_ptr = unsafe { ffi::ltc_encoder_get_bufptr(self.pointer, &mut buf_len, 1) };
+        unsafe { std::slice::from_raw_parts(buf_ptr, buf_len as usize) }
     }
 
     fn get_frame(&self) -> Frame {
@@ -108,13 +172,31 @@ impl Encoder {
         Frame { frame }
     }
 
+    /// Query the length of the internal buffer. It is allocated to hold audio frames for exactly
+    /// one LTC frame for the given sample rate and frame rate, i.e. (1 + sample_rate / fps) bytes.
+    ///
+    /// # Note
+    ///
+    /// This returns the total size of the buffer, not the used/free part. See also
+    /// [`.get_buffer()`](#method.get_buffer).
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// assert_eq!(encoder.get_buffer_size(), (1 + 48_000 / 25) as usize);
+    /// ```
+    pub fn get_buffer_size(&self) -> usize {
+        unsafe { ffi::ltc_encoder_get_buffersize(self.pointer) }
+    }
+
     /// Get the 32 bit unsigned integer from the user data bits of the current frame. The data
     /// should have been written LSB first into the frame.
     ///
     /// # Example
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48000, 25.0).unwrap();
+    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
     /// encoder.set_user_bits(12345);
     /// assert_eq!(encoder.get_user_bits(), 12345);
     /// ```
@@ -166,7 +248,7 @@ impl Encoder {
                 } else {
                     ffi::LTC_TV_STANDARD_LTC_TV_525_60
                 },
-                ffi::LTC_BG_FLAGS_LTC_USE_DATE as i32,
+                ffi::LTC_BG_FLAGS_LTC_BGF_DONT_TOUCH as i32,
             )
         };
         match rv {
@@ -232,7 +314,7 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48000, 25.0).unwrap();
+    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
     /// encoder.set_user_bits(98765);
     /// assert_eq!(encoder.get_user_bits(), 98765);
     /// ```
