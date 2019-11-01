@@ -5,7 +5,6 @@ use std::convert::TryInto;
 pub enum Error {
     AllocationFailed,
     ReinitializationFailed,
-    SuppliedBufferTooSmall,
     ValueOutOfRange,
 }
 
