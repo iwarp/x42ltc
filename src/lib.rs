@@ -47,6 +47,38 @@ pub struct Encoder {
 }
 
 impl Encoder {
+    /// Allocate and initialize LTC audio encoder.
+    ///
+    /// Calls [`ltc_sys::ltc_encoder_reinit`](../ltc_sys/fn.ltc_encoder_reinit.html) inside, see
+    /// notes there or see notes for [`reinit`](#method.reinit).
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let encoder = ltc::Encoder::new(48000, 25).unwrap();
+    /// ```
+    pub fn new(sample_rate: u32, fps: u32) -> Result<Encoder, Error> {
+        let pointer = unsafe {
+            ffi::ltc_encoder_create(
+                f64::from(sample_rate),
+                f64::from(fps),
+                // Position of binary group flags is only different for 25 fps
+                if fps == 25 {
+                    ffi::LTC_TV_STANDARD_LTC_TV_625_50
+                } else {
+                    ffi::LTC_TV_STANDARD_LTC_TV_525_60
+                },
+                ffi::LTC_BG_FLAGS_LTC_USE_DATE as i32,
+            )
+        };
+
+        if pointer.is_null() {
+            Err(Error::OutOfMemoryError)
+        } else {
+            Ok(Encoder { pointer })
+        }
+    }
+
     /// Move the encoder to the previous timecode frame. This is useful for encoding reverse LTC.
     pub fn decrease_timecode(&mut self) {
         unsafe {
@@ -91,38 +123,6 @@ impl Encoder {
             ffi::ltc_frame_get_user_bits(&mut frame.frame)
                 .try_into()
                 .unwrap()
-        }
-    }
-
-    /// Allocate and initialize LTC audio encoder.
-    ///
-    /// Calls [`ltc_sys::ltc_encoder_reinit`](../ltc_sys/fn.ltc_encoder_reinit.html) inside, see
-    /// notes there or see notes for [`reinit`](#method.reinit).
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// let encoder = ltc::Encoder::new(48000, 25).unwrap();
-    /// ```
-    pub fn new(sample_rate: u32, fps: u32) -> Result<Encoder, Error> {
-        let pointer = unsafe {
-            ffi::ltc_encoder_create(
-                f64::from(sample_rate),
-                f64::from(fps),
-                // Position of binary group flags is only different for 25 fps
-                if fps == 25 {
-                    ffi::LTC_TV_STANDARD_LTC_TV_625_50
-                } else {
-                    ffi::LTC_TV_STANDARD_LTC_TV_525_60
-                },
-                ffi::LTC_BG_FLAGS_LTC_USE_DATE as i32,
-            )
-        };
-
-        if pointer.is_null() {
-            Err(Error::OutOfMemoryError)
-        } else {
-            Ok(Encoder { pointer })
         }
     }
 
