@@ -302,6 +302,18 @@ impl Encoder {
     /// # Note
     /// [`.reinitialize()`](#method.reinitialize) resets the filter time constant to use the default
     /// 40µs for the given sample rate, overriding any value previously set with this method.
+    ///
+    /// # Example
+    ///
+    /// Generate a perfect square wave LTC signal:
+    ///
+    /// ```
+    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// encoder.set_volume(0.0);  // so that logical one == 255u8
+    /// encoder.set_filter(0.0);  // perfect square wave
+    /// encoder.encode_frame();
+    /// assert_eq!(encoder.get_buffer()[0], 255u8);  // First sample is alsways logical 1
+    /// ```
     pub fn set_filter(&mut self, rise_time: f64) {
         unsafe {
             ffi::ltc_encoder_set_filter(self.pointer, rise_time);
