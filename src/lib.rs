@@ -113,8 +113,10 @@ impl Encoder {
     fn get_frame(&self) -> Frame {
         unsafe {
             let mut frame = ffi::LTCFrame {
-                __bindgen_padding_0: 0,
-                _bitfield_1: ffi::__BindgenBitfieldUnit::new([0u8; 10]),
+                _bitfield_1: ffi::LTCFrame::new_bitfield_1(
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                ),
+                ..Default::default()
             };
             ffi::ltc_encoder_get_frame(self.pointer, &mut frame);
             Frame { frame }
