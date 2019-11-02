@@ -65,7 +65,7 @@ impl Encoder {
                 f64::from(sample_rate),
                 fps,
                 // Position of binary group flags is only different for 25 fps
-                if fps == 25.0 {
+                if (fps - 25.0).abs() < std::f64::EPSILON {
                     ffi::LTC_TV_STANDARD_LTC_TV_625_50
                 } else {
                     ffi::LTC_TV_STANDARD_LTC_TV_525_60
@@ -113,11 +113,19 @@ impl Encoder {
 
     /// Copy the accumulated encoded audio to the given sample buffer and flush the internal buffer.
     ///
+    /// # Undefined behaviour warning
+    ///
+    /// It is the caller's responsibility to make sure that the capacity of the supplied buffer is
+    /// large enough to hold all of the accumulated data, otherwise the program will most likely be
+    /// aborted due to the internal FFI call causing a segmentation fault, which is UB.
+    ///
     /// # Example
     ///
     /// ```
     /// let sample_rate = 48_000;
     /// let frames_per_second = 25;
+    ///
+    /// // Create a large enough buffer
     /// let mut audio_buffer = Vec::with_capacity((sample_rate / frames_per_second as u32) as usize);
     ///
     /// let mut encoder = ltc::Encoder::new(sample_rate, frames_per_second as f64).unwrap();
@@ -128,15 +136,6 @@ impl Encoder {
     /// );
     /// ```
     pub fn copy_audio_to_buffer(&mut self, buffer: &mut [u8]) -> usize {
-        /*// Check if supplied buffer is large enough
-        let mut accumulated_len = 0;
-        let _ = unsafe { ffi::ltc_encoder_get_bufptr(self.pointer, &mut accumulated_len, 0) };
-        println!("acc: {}; len: {}", accumulated_len, buffer.len());
-        if accumulated_len as usize > buffer.len() {
-            return Err(Error::SuppliedBufferTooSmall);
-        }*/
-
-        // Copy data
         let copied_len = unsafe { ffi::ltc_encoder_get_buffer(self.pointer, buffer.as_mut_ptr()) };
         copied_len as usize
     }
@@ -152,7 +151,7 @@ impl Encoder {
     /// let buffer = encoder.get_buffer();
     /// assert_eq!(buffer.len(), 48_000 / 25);
     /// ```
-    pub fn get_buffer<'a>(&'a self) -> &'a [u8] {
+    pub fn get_buffer(&self) -> &[u8] {
         let mut buf_len = 0;
         let buf_ptr = unsafe { ffi::ltc_encoder_get_bufptr(self.pointer, &mut buf_len, 1) };
         unsafe { std::slice::from_raw_parts(buf_ptr, buf_len as usize) }
@@ -242,7 +241,7 @@ impl Encoder {
                 self.pointer,
                 f64::from(sample_rate),
                 fps, // Position of binary group flags is only different for 25 fps
-                if fps == 25.0 {
+                if (fps - 25.0).abs() < std::f64::EPSILON {
                     ffi::LTC_TV_STANDARD_LTC_TV_625_50
                 } else {
                     ffi::LTC_TV_STANDARD_LTC_TV_525_60
