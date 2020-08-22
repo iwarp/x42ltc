@@ -34,7 +34,7 @@ impl Decoder {
     /// Create a new LTC decoder.
     ///
     /// - `audio_frames_per_video_frame` is only used for initial settings, the speed is tracked
-    ///   dynamically. Settings this into the right ballpark is needed to properly decode the first
+    ///   dynamically. Setting this into the right ballpark is needed to properly decode the first
     ///   LTC frame.
     /// - `queue_size` sets the length of the internal queue to store decoded frames.
     ///
