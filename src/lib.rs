@@ -382,6 +382,8 @@ impl Drop for Encoder {
     }
 }
 
+unsafe impl Send for Encoder {}
+
 struct Frame {
     frame: ffi::LTCFrame,
 }
