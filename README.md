@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/jmaibaum/ltc.svg?branch=master)](https://travis-ci.com/jmaibaum/ltc)
+[![Build Status](https://github.com/jmaibaum/ltc/workflows/Continuous%20Integration/badge.svg)](https://github.com/jmaibaum/ltc/actions?query=workflow%3A%22Continuous+Integration%22)
 
 # [WIP] Rust wrapper crate for libltc
 
