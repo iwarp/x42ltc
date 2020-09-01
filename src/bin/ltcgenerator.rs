@@ -45,7 +45,7 @@ fn main() {
 
     for _frame in 0..(length * frames_per_second) {
         encoder.encode_frame();
-        output_file.write(encoder.get_buffer()).unwrap();
+        output_file.write_all(encoder.get_buffer()).unwrap();
         encoder.increase_timecode();
     }
 }
