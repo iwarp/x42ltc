@@ -1,4 +1,4 @@
-// ltc-sys: src/lib.rs
+// libltc-sys: src/lib.rs
 //
 // Copyright 2019 Johannes Maibaum <jmaibaum@gmail.com>
 //

@@ -1,4 +1,4 @@
-// ltc-sys: build.rs
+// libltc-sys: build.rs
 //
 // Copyright 2019 Johannes Maibaum <jmaibaum@gmail.com>
 //
@@ -17,7 +17,7 @@
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 fn main() {
-    // Build libltc
+    // Build libltc C library
     let src = [
         "vendor/src/ltc.c",
         "vendor/src/decoder.c",

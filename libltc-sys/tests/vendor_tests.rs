@@ -1,4 +1,4 @@
-// ltc-sys: vendor_tests.rs
+// libltc-sys: vendor_tests.rs
 //
 // Copyright 2019 Johannes Maibaum <jmaibaum@gmail.com>
 //
@@ -16,7 +16,7 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use ltc_sys::*;
+use libltc_sys::*;
 use std::ffi::CStr;
 use std::fs::File;
 use std::io::Read;
