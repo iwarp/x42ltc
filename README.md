@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/jmaibaum/libltc/workflows/CI/badge.svg)](https://github.com/jmaibaum/libltc/actions?query=workflow%3A%22CI%22)
+[![Build Status](https://github.com/jmaibaum/x42ltc/workflows/CI/badge.svg)](https://github.com/jmaibaum/x42ltc/actions?query=workflow%3A%22CI%22)
 # Rust wrapper crates for x42’s libltc
 
 This repository holds the sources for the x42ltc and x42ltc-sys crates.
