@@ -1,5 +1,4 @@
 # Based on https://github.com/actions-rs/meta/blob/master/recipes/msrv.md
-
 on: [push, pull_request]
 
 name: CI
