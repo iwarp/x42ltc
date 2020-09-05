@@ -16,7 +16,7 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use libltc::*;
+use x42ltc::*;
 use std::fs::File;
 use std::io::Write;
 

@@ -1,11 +1,9 @@
 [package]
-name = "libltc-sys"
+name = "x42ltc"
 version = "0.1.0"
 authors = ["Johannes Maibaum <jmaibaum@gmail.com>"]
 edition = "2018"
 license = "LGPL-3.0-or-later"
 
 [dependencies]
-
-[build-dependencies]
-cc = { version = "1.0", features = ["parallel"] }
+x42ltc-sys = { path = "../x42ltc-sys", version = "0.1" }

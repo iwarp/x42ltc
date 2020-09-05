@@ -1,2 +1,2 @@
 [workspace]
-members = ["libltc-sys", "libltc"]
+members = ["x42ltc-sys", "x42ltc"]
