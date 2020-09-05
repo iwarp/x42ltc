@@ -6,4 +6,4 @@ edition = "2018"
 license = "LGPL-3.0-or-later"
 
 [dependencies]
-ltc-sys = {git = "https://github.com/jmaibaum/ltc-sys.git"}
+libltc-sys = { path = "../libltc-sys", version = "0.1" }

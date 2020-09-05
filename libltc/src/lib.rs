@@ -1,6 +1,6 @@
-// ltc: src/lib.rs
+// libltc: src/lib.rs
 //
-// Copyright 2019 Johannes Maibaum <jmaibaum@gmail.com>
+// Copyright 2019-2020 Johannes Maibaum <jmaibaum@gmail.com>
 //
 // This file is free software; you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use ltc_sys as ffi;
+use libltc_sys as ffi;
 use std::convert::TryInto;
 
 #[derive(Debug)]
@@ -41,7 +41,7 @@ impl Decoder {
     /// # Example
     ///
     /// ```
-    /// let decoder = ltc::Decoder::new(32, 1920).unwrap();
+    /// let decoder = libltc::Decoder::new(32, 1920).unwrap();
     /// ```
     pub fn new(audio_frames_per_video_frame: i32, queue_size: i32) -> Result<Decoder, Error> {
         let pointer = unsafe { ffi::ltc_decoder_create(audio_frames_per_video_frame, queue_size) };
@@ -69,13 +69,13 @@ pub struct Encoder {
 impl Encoder {
     /// Allocate and initialize LTC audio encoder.
     ///
-    /// Calls [`ltc_sys::ltc_encoder_reinit()`](../ltc_sys/fn.ltc_encoder_reinit.html) inside, see
+    /// Calls [`libltc_sys::ltc_encoder_reinit()`](../libltc_sys/fn.ltc_encoder_reinit.html) inside, see
     /// notes there or see notes for [`.reinitialize()`](#method.reinitialize).
     ///
     /// # Example
     ///
     /// ```
-    /// let encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// ```
     pub fn new(sample_rate: u32, fps: f64) -> Result<Encoder, Error> {
         let pointer = unsafe {
@@ -146,7 +146,7 @@ impl Encoder {
     /// // Create a large enough buffer
     /// let mut audio_buffer = Vec::with_capacity((sample_rate / frames_per_second as u32) as usize);
     ///
-    /// let mut encoder = ltc::Encoder::new(sample_rate, frames_per_second as f64).unwrap();
+    /// let mut encoder = libltc::Encoder::new(sample_rate, frames_per_second as f64).unwrap();
     /// encoder.encode_frame();
     /// assert_eq!(
     ///     encoder.copy_audio_to_buffer(&mut audio_buffer),
@@ -164,7 +164,7 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let mut encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// encoder.encode_frame();
     /// let buffer = encoder.get_buffer();
     /// assert_eq!(buffer.len(), 48_000 / 25);
@@ -199,7 +199,7 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// assert_eq!(encoder.get_buffer_size(), (1 + 48_000 / 25) as usize);
     /// ```
     pub fn get_buffer_size(&self) -> usize {
@@ -212,14 +212,14 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let mut encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// encoder.set_user_bits(12345);
     /// assert_eq!(encoder.get_user_bits(), 12345);
     /// ```
     pub fn get_user_bits(&self) -> u32 {
         let mut frame = self.get_frame();
         unsafe {
-            // We can unwrap here, since user bits is actually u32 in ltc_sys
+            // We can unwrap here, since user bits is actually u32 in libltc_sys
             ffi::ltc_frame_get_user_bits(&mut frame.frame)
                 .try_into()
                 .unwrap()
@@ -249,7 +249,7 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let mut encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// let result = encoder.reinitialize(44_100, 25.0);
     /// assert!(result.is_ok());
     /// ```
@@ -296,7 +296,7 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let mut encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// let result = encoder.set_buffer_size(192_000, 25.0);
     /// assert!(result.is_ok());
     /// ```
@@ -324,7 +324,7 @@ impl Encoder {
     /// Generate a perfect square wave LTC signal:
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let mut encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// encoder.set_volume(0.0);  // so that logical one == 255u8
     /// encoder.set_filter(0.0);  // perfect square wave
     /// encoder.encode_frame();
@@ -342,7 +342,7 @@ impl Encoder {
     /// # Example
     ///
     /// ```
-    /// let mut encoder = ltc::Encoder::new(48_000, 25.0).unwrap();
+    /// let mut encoder = libltc::Encoder::new(48_000, 25.0).unwrap();
     /// encoder.set_user_bits(98765);
     /// assert_eq!(encoder.get_user_bits(), 98765);
     /// ```

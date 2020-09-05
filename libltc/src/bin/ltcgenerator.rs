@@ -1,6 +1,6 @@
-// ltc: src/bin/ltcgenerator.rs
+// libltc: src/bin/ltcgenerator.rs
 //
-// Copyright 2019 Johannes Maibaum <jmaibaum@gmail.com>
+// Copyright 2019-2020 Johannes Maibaum <jmaibaum@gmail.com>
 //
 // This file is free software; you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use ltc::*;
+use libltc::*;
 use std::fs::File;
 use std::io::Write;
 
