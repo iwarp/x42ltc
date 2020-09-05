@@ -16,10 +16,10 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use x42ltc_sys::*;
 use std::ffi::CStr;
 use std::fs::File;
 use std::io::Read;
+use x42ltc_sys::*;
 
 /// Adapted C test code from vendor/tests/ltcdecode.c
 fn decode_raw(mut data: &[u8], apv: Option<i32>) -> String {

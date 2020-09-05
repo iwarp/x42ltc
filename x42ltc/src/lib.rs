@@ -16,8 +16,8 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use x42ltc_sys as ffi;
 use std::convert::TryInto;
+use x42ltc_sys as ffi;
 
 #[derive(Debug)]
 pub enum Error {
