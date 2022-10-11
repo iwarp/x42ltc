@@ -348,7 +348,7 @@ impl Encoder {
     /// ```
     pub fn set_user_bits(&mut self, user_bits: u32) {
         unsafe {
-            ffi::ltc_encoder_set_user_bits(self.pointer, u64::from(user_bits));
+            ffi::ltc_encoder_set_user_bits(self.pointer, u32::from(user_bits));
         }
     }
 
