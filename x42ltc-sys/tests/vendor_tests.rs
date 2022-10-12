@@ -175,20 +175,6 @@ fn ltc_encode_then_decode_48000() {
     assert_eq!(decoded_output, expected_output);
 }
 
-
-#[test]
-/// Adapted C test code from vendor/tests/ltc{de,en}code.c
-fn ltc_encode_then_decode_48000() {
-    let encoded_timecode = encode_raw(Some(48000.0));
-    let decoded_output = decode_raw(&encoded_timecode, None);
-
-    let mut expect_file = File::open("vendor/tests/expect_48k_2sec.txt").unwrap();
-    let mut expected_output = String::new();
-    expect_file.read_to_string(&mut expected_output).unwrap();
-    assert_eq!(decoded_output, expected_output);
-}
-
-
 #[test]
 /// Adapted C test code from vendor/tests/ltc{de,en}code.c
 fn ltc_encode_then_decode_192000() {
