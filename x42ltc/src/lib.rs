@@ -16,7 +16,6 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use std::convert::TryInto;
 use x42ltc_sys as ffi;
 
 #[derive(Debug)]
@@ -221,8 +220,6 @@ impl Encoder {
         unsafe {
             // We can unwrap here, since user bits is actually u32 in libltc_sys
             ffi::ltc_frame_get_user_bits(&mut frame.frame)
-                .try_into()
-                .unwrap()
         }
     }
 
@@ -240,7 +237,7 @@ impl Encoder {
             ffi::ltc_encoder_get_timecode(self.pointer, &mut tc as *mut x42ltc_sys::SMPTETimecode);
         }
 
-        return tc;
+        tc
     }
 
     // Gets the current timecode from encoder
@@ -365,7 +362,7 @@ impl Encoder {
     /// ```
     pub fn set_user_bits(&mut self, user_bits: u32) {
         unsafe {
-            ffi::ltc_encoder_set_user_bits(self.pointer, u32::from(user_bits));
+            ffi::ltc_encoder_set_user_bits(self.pointer, user_bits);
         }
     }
 
