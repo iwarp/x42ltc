@@ -233,6 +233,23 @@ impl Encoder {
         }
     }
 
+    // Gets the current timecode from encoder
+    pub fn get_timecode(&mut self) -> x42ltc_sys::SMPTETimecode {
+        let mut tc = x42ltc_sys::SMPTETimecode::default();
+        unsafe {
+            ffi::ltc_encoder_get_timecode(self.pointer, &mut tc as *mut x42ltc_sys::SMPTETimecode);
+        }
+
+        return tc;
+    }
+
+    // Gets the current timecode from encoder
+    pub fn set_timecode(&mut self, mut tc: x42ltc_sys::SMPTETimecode) {
+        unsafe {
+            ffi::ltc_encoder_set_timecode(self.pointer, &mut tc as *mut x42ltc_sys::SMPTETimecode);
+        }
+    }
+
     /// Change the encoder's settings without reallocating any library internal data structure
     /// (realtime safe). Changing the `fps` and/or `sample_rate` implies a buffer flush, and a
     /// biphase state reset.

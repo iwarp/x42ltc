@@ -70,7 +70,7 @@ fn decode_raw(mut data: &[u8], apv: Option<i32>) -> String {
                     1,
                 );
                 output.push_str(&format!(
-                    "{:04}-{:02}-{:02} {} {:02}:{:02}:{:02}{}{:02} | {:8} {:8}{}\n",
+                    "{:04}-{:02}-{:02} {} {:02}:{:02}:{:02}{}{:02} | {:8} {:8}{}\r\n",
                     if stime.years < 67 {
                         2000 + stime.years as i32
                     } else {
@@ -166,7 +166,7 @@ fn encode_raw(sample_rate: Option<f64>) -> Vec<u8> {
 #[test]
 /// Adapted C test code from vendor/tests/ltc{de,en}code.c
 fn ltc_encode_then_decode_48000() {
-    let encoded_timecode = encode_raw(None);
+    let encoded_timecode = encode_raw(Some(48000.0));
     let decoded_output = decode_raw(&encoded_timecode, None);
 
     let mut expect_file = File::open("vendor/tests/expect_48k_2sec.txt").unwrap();
@@ -174,6 +174,20 @@ fn ltc_encode_then_decode_48000() {
     expect_file.read_to_string(&mut expected_output).unwrap();
     assert_eq!(decoded_output, expected_output);
 }
+
+
+#[test]
+/// Adapted C test code from vendor/tests/ltc{de,en}code.c
+fn ltc_encode_then_decode_48000() {
+    let encoded_timecode = encode_raw(Some(48000.0));
+    let decoded_output = decode_raw(&encoded_timecode, None);
+
+    let mut expect_file = File::open("vendor/tests/expect_48k_2sec.txt").unwrap();
+    let mut expected_output = String::new();
+    expect_file.read_to_string(&mut expected_output).unwrap();
+    assert_eq!(decoded_output, expected_output);
+}
+
 
 #[test]
 /// Adapted C test code from vendor/tests/ltc{de,en}code.c
