@@ -98,6 +98,7 @@ fn decode_raw(mut data: &[u8], apv: Option<i32>) -> String {
             }
         }
 
+        ltc_decoder_free(decoder);
         output
     }
 }
