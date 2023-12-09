@@ -28,5 +28,4 @@
 //! ```console
 //! bindgen vendor/src/ltc.h -o src/bindings.rs --with-derive-defaults
 //! ```
-
 include!("./bindings.rs");
