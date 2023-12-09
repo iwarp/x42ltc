@@ -1,2 +1,3 @@
 [workspace]
 members = ["x42ltc-sys", "x42ltc"]
+resolver = "2"
