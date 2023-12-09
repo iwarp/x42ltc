@@ -20,6 +20,7 @@
 #![allow(non_snake_case)]
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::upper_case_acronyms)]
+#![allow(clippy::useless_transmute)]
 
 //! # bindgen commandline
 //!
