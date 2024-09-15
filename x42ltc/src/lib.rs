@@ -82,7 +82,7 @@ impl Encoder {
                 f64::from(sample_rate),
                 fps,
                 // Position of binary group flags is only different for 25 fps
-                if (fps - 25.0).abs() < std::f64::EPSILON {
+                if (fps - 25.0).abs() < f64::EPSILON {
                     ffi::LTC_TV_STANDARD_LTC_TV_625_50
                 } else {
                     ffi::LTC_TV_STANDARD_LTC_TV_525_60
@@ -273,7 +273,7 @@ impl Encoder {
                 self.pointer,
                 f64::from(sample_rate),
                 fps, // Position of binary group flags is only different for 25 fps
-                if (fps - 25.0).abs() < std::f64::EPSILON {
+                if (fps - 25.0).abs() < f64::EPSILON {
                     ffi::LTC_TV_STANDARD_LTC_TV_625_50
                 } else {
                     ffi::LTC_TV_STANDARD_LTC_TV_525_60
