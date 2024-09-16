@@ -55,27 +55,61 @@ impl Decoder {
         }
     }
 
-    /// Resets the write-pointer of the encoded buffer.
+    /// Resets the decoder queue.
+    /// ```
+    /// let mut decoder = x42ltc::Decoder::new(32, 1920).unwrap();
+    /// decoder.queue_flush();
+    /// ```
     pub fn queue_flush(&mut self) {
         unsafe {
             ffi::ltc_decoder_queue_flush(self.pointer);
         }
     }
 
-    pub fn queue_length(&mut self) {
-        unsafe {
-            ffi::ltc_decoder_queue_length(self.pointer);
-        }
+    /// Gets the decoder queue length.
+    /// ```
+    /// let mut decoder = x42ltc::Decoder::new(32, 1920).unwrap();
+    /// let len = decoder.queue_length();
+    /// assert_eq!(0, len);
+    /// ```
+    pub fn queue_length(&mut self) -> i32 {
+        unsafe { ffi::ltc_decoder_queue_length(self.pointer) }
     }
 
+    /// Writes audio data into the decoder.
+    /// ```
+    /// let mut decoder = x42ltc::Decoder::new(32, 1920).unwrap();
+    /// let mut sound = vec![0_u8;1920];
+    /// decoder.write(sound.as_mut_slice());
+    /// let len = decoder.queue_length();
+    /// assert_eq!(0, len);
+    /// ```
     pub fn write(&mut self, data: &mut [u8]) {
-        let mut sound = [0u8; 1024];
+        println!("Write: {}", data.len());
+        println!("Non Zero: {}", data.iter().filter(|&&x| x != 0).count());
+
+        let mut sound = [0u8; 1920];
         let mut cursor = Cursor::new(data);
 
         loop {
-            let n = cursor.read(&mut sound).unwrap();
-            unsafe {
-                ffi::ltc_decoder_write(self.pointer, sound.as_mut_ptr(), n, self.total as i64);
+            match cursor.read(&mut sound) {
+                Ok(n) => {
+                    if n == 0 {
+                        break;
+                    }
+                    unsafe {
+                        println!("LTC Decoder Write: {}", n);
+                        ffi::ltc_decoder_write(
+                            self.pointer,
+                            sound.as_mut_ptr(),
+                            n,
+                            self.total as i64,
+                        );
+                    }
+
+                    self.total += 1;
+                }
+                Err(_) => break,
             }
         }
     }
@@ -237,7 +271,7 @@ impl Encoder {
         unsafe { std::slice::from_raw_parts(buf_ptr, buf_len as usize) }
     }
 
-    pub fn get_frame(&self) -> Frame {
+    fn get_frame(&self) -> Frame {
         let mut frame = ffi::LTCFrame {
             _bitfield_1: ffi::LTCFrame::new_bitfield_1(
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -405,7 +439,7 @@ impl Encoder {
     /// encoder.set_volume(0.0);  // so that logical one == 255u8
     /// encoder.set_filter(0.0);  // perfect square wave
     /// encoder.encode_frame();
-    /// assert_eq!(encoder.get_buffer()[0], 255u8);  // First sample is alsways logical 1
+    /// assert_eq!(encoder.get_buffer()[0], 255u8);  // First sample is always logical 1
     /// ```
     pub fn set_filter(&mut self, rise_time: f64) {
         unsafe {
@@ -478,5 +512,37 @@ mod tests {
     fn encoder_reinitialization_fails_if_internal_buffer_is_too_small() {
         let mut encoder = Encoder::new(48_000, 25.0).unwrap();
         assert!(encoder.reinitialize(192_000, 25.0).is_err());
+    }
+
+    #[test]
+    fn decoder_test() {
+        let mut encoder = Encoder::new(48_000, 25.0).unwrap();
+
+        let mut tc = SMPTETimecode::default();
+        tc.hours = 1;
+        tc.mins = 2;
+        tc.secs = 3;
+        tc.frame = 4;
+
+        encoder.set_timecode(tc);
+        encoder.encode_frame();
+        let mut buffer = encoder.get_buffer().to_vec();
+
+        let mut decoder = Decoder::new(1920, 6).unwrap();
+
+        decoder.queue_flush();
+        assert_eq!(0, decoder.queue_length());
+
+        decoder.write(buffer.as_mut_slice());
+        decoder.write(buffer.as_mut_slice());
+
+        assert_eq!(1, decoder.queue_length());
+
+        let frame = decoder.read().unwrap();
+
+        assert_eq!(1, frame.hours);
+        assert_eq!(2, frame.mins);
+        assert_eq!(3, frame.secs);
+        assert_eq!(4, frame.frame);
     }
 }
