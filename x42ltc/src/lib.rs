@@ -1,3 +1,5 @@
+use std::io::{Cursor, Read};
+
 // x42ltc: src/lib.rs
 //
 // Copyright 2019-2020 Johannes Maibaum <jmaibaum@gmail.com>
@@ -16,7 +18,7 @@
 // License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use x42ltc_sys as ffi;
+use x42ltc_sys::{self as ffi, LTCFrame, LTCFrameExt, SMPTETimecode};
 
 #[derive(Debug)]
 pub enum Error {
@@ -27,6 +29,7 @@ pub enum Error {
 
 pub struct Decoder {
     pointer: *mut ffi::LTCDecoder,
+    total: u64,
 }
 
 impl Decoder {
@@ -48,8 +51,74 @@ impl Decoder {
         if pointer.is_null() {
             Err(Error::AllocationFailed)
         } else {
-            Ok(Decoder { pointer })
+            Ok(Decoder { pointer, total: 0 })
         }
+    }
+
+    /// Resets the write-pointer of the encoded buffer.
+    pub fn queue_flush(&mut self) {
+        unsafe {
+            ffi::ltc_decoder_queue_flush(self.pointer);
+        }
+    }
+
+    pub fn queue_length(&mut self) {
+        unsafe {
+            ffi::ltc_decoder_queue_length(self.pointer);
+        }
+    }
+
+    pub fn write(&mut self, data: &mut [u8]) {
+        let mut sound = [0u8; 1024];
+        let mut cursor = Cursor::new(data);
+
+        loop {
+            let n = cursor.read(&mut sound).unwrap();
+            unsafe {
+                ffi::ltc_decoder_write(self.pointer, sound.as_mut_ptr(), n, self.total as i64);
+            }
+        }
+    }
+
+    pub fn read(&mut self) -> Option<Frame> {
+        let mut frame = LTCFrameExt {
+            biphase_tics: [0.0f32; 80],
+            ltc: LTCFrame {
+                _bitfield_1: LTCFrame::new_bitfield_1(
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                ),
+                ..Default::default()
+            },
+            off_start: 0,
+            off_end: 0,
+            reverse: 0,
+            sample_max: 0,
+            sample_min: 0,
+            volume: 0.0,
+        };
+
+        unsafe {
+            let read_ret = ffi::ltc_decoder_read(self.pointer, &mut frame as *mut LTCFrameExt);
+            if read_ret == 0 {
+                return None;
+            }
+
+            Some(Frame { frame: frame.ltc })
+        }
+    }
+
+    pub fn get_timecode(&self, frame: &mut Frame) -> SMPTETimecode {
+        let mut time = SMPTETimecode::default();
+
+        unsafe {
+            ffi::ltc_frame_to_time(
+                &mut time as *mut SMPTETimecode,
+                &mut frame.frame as *mut LTCFrame,
+                1,
+            );
+        }
+
+        time
     }
 }
 
@@ -174,7 +243,7 @@ impl Encoder {
         unsafe { std::slice::from_raw_parts(buf_ptr, buf_len as usize) }
     }
 
-    fn get_frame(&self) -> Frame {
+    pub fn get_frame(&self) -> Frame {
         let mut frame = ffi::LTCFrame {
             _bitfield_1: ffi::LTCFrame::new_bitfield_1(
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
