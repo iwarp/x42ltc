@@ -80,7 +80,7 @@ impl Decoder {
         }
     }
 
-    pub fn read(&mut self) -> Option<Frame> {
+    pub fn read(&mut self) -> Option<SMPTETimecode> {
         let mut frame = LTCFrameExt {
             biphase_tics: [0.0f32; 80],
             ltc: LTCFrame {
@@ -103,22 +103,16 @@ impl Decoder {
                 return None;
             }
 
-            Some(Frame { frame: frame.ltc })
-        }
-    }
+            let mut time = SMPTETimecode::default();
 
-    pub fn get_timecode(&self, frame: &mut Frame) -> SMPTETimecode {
-        let mut time = SMPTETimecode::default();
-
-        unsafe {
             ffi::ltc_frame_to_time(
                 &mut time as *mut SMPTETimecode,
-                &mut frame.frame as *mut LTCFrame,
+                &mut frame.ltc as *mut LTCFrame,
                 1,
             );
-        }
 
-        time
+            Some(time)
+        }
     }
 }
 
