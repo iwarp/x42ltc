@@ -29,7 +29,6 @@ pub enum Error {
 
 pub struct Decoder {
     pointer: *mut ffi::LTCDecoder,
-    total: u64,
 }
 
 impl Decoder {
@@ -43,7 +42,7 @@ impl Decoder {
     /// # Example
     ///
     /// ```
-    /// let decoder = x42ltc::Decoder::new(32, 1920).unwrap();
+    /// let decoder = x42ltc::Decoder::new(1920,32).unwrap();
     /// ```
     pub fn new(audio_frames_per_video_frame: i32, queue_size: i32) -> Result<Decoder, Error> {
         let pointer = unsafe { ffi::ltc_decoder_create(audio_frames_per_video_frame, queue_size) };
@@ -51,13 +50,13 @@ impl Decoder {
         if pointer.is_null() {
             Err(Error::AllocationFailed)
         } else {
-            Ok(Decoder { pointer, total: 0 })
+            Ok(Decoder { pointer })
         }
     }
 
     /// Resets the decoder queue.
     /// ```
-    /// let mut decoder = x42ltc::Decoder::new(32, 1920).unwrap();
+    /// let mut decoder = x42ltc::Decoder::new(1920,32).unwrap();
     /// decoder.queue_flush();
     /// ```
     pub fn queue_flush(&mut self) {
@@ -68,7 +67,7 @@ impl Decoder {
 
     /// Gets the decoder queue length.
     /// ```
-    /// let mut decoder = x42ltc::Decoder::new(32, 1920).unwrap();
+    /// let mut decoder = x42ltc::Decoder::new(1920,32).unwrap();
     /// let len = decoder.queue_length();
     /// assert_eq!(0, len);
     /// ```
@@ -78,39 +77,31 @@ impl Decoder {
 
     /// Writes audio data into the decoder.
     /// ```
-    /// let mut decoder = x42ltc::Decoder::new(32, 1920).unwrap();
+    /// let mut decoder = x42ltc::Decoder::new(1920,32).unwrap();
     /// let mut sound = vec![0_u8;1920];
     /// decoder.write(sound.as_mut_slice());
     /// let len = decoder.queue_length();
     /// assert_eq!(0, len);
     /// ```
     pub fn write(&mut self, data: &mut [u8]) {
-        println!("Write: {}", data.len());
-        println!("Non Zero: {}", data.iter().filter(|&&x| x != 0).count());
+        let len = data.len();
+        unsafe {
+            ffi::ltc_decoder_write(self.pointer, data.as_mut_ptr(), len, 0);
+        }
+    }
 
-        let mut sound = [0u8; 1920];
-        let mut cursor = Cursor::new(data);
-
-        loop {
-            match cursor.read(&mut sound) {
-                Ok(n) => {
-                    if n == 0 {
-                        break;
-                    }
-                    unsafe {
-                        println!("LTC Decoder Write: {}", n);
-                        ffi::ltc_decoder_write(
-                            self.pointer,
-                            sound.as_mut_ptr(),
-                            n,
-                            self.total as i64,
-                        );
-                    }
-
-                    self.total += 1;
-                }
-                Err(_) => break,
-            }
+    /// Writes audio data into the decoder as f32.
+    /// ```
+    /// let mut decoder = x42ltc::Decoder::new(1920,32).unwrap();
+    /// let mut sound = vec![0.0_f32;1920];
+    /// decoder.write_f32(sound.as_mut_slice());
+    /// let len = decoder.queue_length();
+    /// assert_eq!(0, len);
+    /// ```
+    pub fn write_f32(&mut self, data: &mut [f32]) {
+        let len = data.len();
+        unsafe {
+            ffi::ltc_decoder_write_float(self.pointer, data.as_mut_ptr(), len, 0);
         }
     }
 
