@@ -73,6 +73,8 @@ impl Decoder {
     /// ```
     pub fn queue_length(&mut self) -> i32 {
         unsafe { ffi::ltc_decoder_queue_length(self.pointer) }
+
+        ffi::ltcdec
     }
 
     /// Writes audio data into the decoder.
@@ -106,21 +108,7 @@ impl Decoder {
     }
 
     pub fn read(&mut self) -> Option<SMPTETimecode> {
-        let mut frame = LTCFrameExt {
-            biphase_tics: [0.0f32; 80],
-            ltc: LTCFrame {
-                _bitfield_1: LTCFrame::new_bitfield_1(
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                ),
-                ..Default::default()
-            },
-            off_start: 0,
-            off_end: 0,
-            reverse: 0,
-            sample_max: 0,
-            sample_min: 0,
-            volume: 0.0,
-        };
+        let mut frame = LTCFrameExt::default();
 
         unsafe {
             let read_ret = ffi::ltc_decoder_read(self.pointer, &mut frame as *mut LTCFrameExt);
