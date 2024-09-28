@@ -1,5 +1,3 @@
-use std::io::{Cursor, Read};
-
 // x42ltc: src/lib.rs
 //
 // Copyright 2019-2020 Johannes Maibaum <jmaibaum@gmail.com>
@@ -72,9 +70,7 @@ impl Decoder {
     /// assert_eq!(0, len);
     /// ```
     pub fn queue_length(&mut self) -> i32 {
-        unsafe { ffi::ltc_decoder_queue_length(self.pointer) }
-
-        ffi::ltcdec
+        unsafe { return ffi::ltc_decoder_queue_length(self.pointer) }
     }
 
     /// Writes audio data into the decoder.
