@@ -291,7 +291,8 @@ impl Encoder {
         let mut frame = self.get_frame();
         unsafe {
             // We can unwrap here, since user bits is actually u32 in libltc_sys
-            ffi::ltc_frame_get_user_bits(&mut frame.frame)
+            // on MacOS / Linux c_ulong is 32 bit and 64bit long depending on CPU, casting here to truncate
+            ffi::ltc_frame_get_user_bits(&mut frame.frame) as u32
         }
     }
 
