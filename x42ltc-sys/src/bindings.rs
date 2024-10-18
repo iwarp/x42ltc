@@ -685,7 +685,7 @@ impl Default for LTCFrameExt {
 }
 #[doc = " Human readable time representation, decimal values."]
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 pub struct SMPTETimecode {
     #[doc = "< the timezone 6bytes: \"+HHMM\" textual representation"]
     pub timezone: [::std::os::raw::c_char; 6usize],

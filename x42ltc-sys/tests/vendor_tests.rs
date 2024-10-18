@@ -202,3 +202,28 @@ fn ltc_decode_timecode_dot_raw() {
 
     assert_eq!(decoded_output, expected_output);
 }
+
+#[test]
+fn compare() {
+    let tc1 = SMPTETimecode {
+        hours: 1,
+        mins: 2,
+        secs: 3,
+        frame: 4,
+        ..SMPTETimecode::default()
+    };
+
+    let mut tc2 = SMPTETimecode {
+        hours: 1,
+        mins: 2,
+        secs: 3,
+        frame: 4,
+        ..SMPTETimecode::default()
+    };
+
+    assert_eq!(tc1, tc2);
+
+    tc2.days = 1;
+
+    assert_ne!(tc1, tc2);
+}
