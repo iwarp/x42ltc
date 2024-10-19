@@ -70,7 +70,7 @@ impl Decoder {
     /// assert_eq!(0, len);
     /// ```
     pub fn queue_length(&mut self) -> i32 {
-        unsafe { return ffi::ltc_decoder_queue_length(self.pointer) }
+        unsafe { ffi::ltc_decoder_queue_length(self.pointer) }
     }
 
     /// Writes audio data into the decoder.
@@ -87,7 +87,6 @@ impl Decoder {
             ffi::ltc_decoder_write(self.pointer, data.as_mut_ptr(), len, 0);
         }
     }
-
     /// Writes audio data into the decoder as f32.
     /// ```
     /// let mut decoder = x42ltc::Decoder::new(1920,32).unwrap();
@@ -435,6 +434,8 @@ impl Encoder {
     /// ```
     pub fn set_user_bits(&mut self, user_bits: u32) {
         unsafe {
+            // conversion needed on MacOS Arm where this is a u64 vs a u32
+            #[allow(clippy::useless_conversion)]
             ffi::ltc_encoder_set_user_bits(self.pointer, user_bits.into());
         }
     }
